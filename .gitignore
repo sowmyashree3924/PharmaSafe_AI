@@ -17,11 +17,6 @@ corpus/**/*.pdf
 # Extracted full-text copies
 docs/planning/extracted_text/
 
-# Local environments and secrets
-.venv/
-.env
-.env.*
-!.env.example
 # Testing
 .pytest_cache/
 .coverage
@@ -36,3 +31,10 @@ node_modules/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Generated vector database
+data/faiss_index/
+
+# Local debug files
+debug_messages.py
+evaluation/reports/
