@@ -22,3 +22,12 @@ docs/planning/extracted_text/
 .env
 .env.*
 !.env.example
+# Generated Python files
+__pycache__/
+*.py[cod]
+
+# Generated vector database
+data/faiss_index/
+
+# Local debug files
+debug_messages.pyevaluation/reports/
