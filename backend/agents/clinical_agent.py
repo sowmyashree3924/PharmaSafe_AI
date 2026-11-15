@@ -1,10 +1,8 @@
-
 import os
 import json
 import re
 
 from dotenv import load_dotenv
-
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import (
     SystemMessage,
@@ -24,56 +22,31 @@ load_dotenv(override=True)
 MAX_TOOL_CALLS = 5
 
 
-SYSTEM_PROMPT = """
-You are the Clinical Assessment Agent in a pharmacovigilance system.
+# --------------------------------------------------
+# Prompt version selection
+# --------------------------------------------------
 
-Your responsibilities:
-1. Inspect the synthetic adverse event case.
-2. Retrieve relevant evidence using available tools.
-3. Assess seriousness using retrieved evidence and case facts.
-4. Assess expectedness only when an approved package insert is available.
-5. Never invent evidence, citations, patient facts or regulatory rules.
+PROMPT_VERSION = os.getenv("CLINICAL_PROMPT_VERSION", "v2")
 
-Available tools:
-- corpus_search_tool
-- clause_lookup_tool
+if PROMPT_VERSION == "v1":
+    from prompts.v1.clinical_assessment import (
+        CLINICAL_ASSESSMENT_PROMPT,
+    )
+elif PROMPT_VERSION == "v2":
+    from prompts.v2.clinical_assessment import (
+        CLINICAL_ASSESSMENT_PROMPT,
+    )
+else:
+    raise ValueError(
+        f"Unsupported clinical prompt version: {PROMPT_VERSION}"
+    )
 
-Select tools dynamically based on the information required.
+SYSTEM_PROMPT = CLINICAL_ASSESSMENT_PROMPT
 
-Safety rules:
-- Hospitalisation is a seriousness criterion when the event
-  results in or prolongs hospitalisation.
-- Do not assume hospitalisation was caused by the event.
-- Do not infer causality from timing alone.
-- If the package insert is unavailable, expectedness is undetermined.
-- Do not use clinical-trial regulations for marketed-product cases.
-- Do not treat general guidance as a drug-specific package insert.
-- Never invent citations.
-- Use only exact chunk_id values returned by retrieval tools.
 
-When you have gathered sufficient evidence, return ONLY valid JSON.
-Do not wrap the JSON in Markdown code fences.
-
-Required JSON structure:
-
-{
-  "reaction_description": "string",
-  "seriousness": "serious | non_serious | undetermined",
-  "expectedness": "expected | unexpected | undetermined",
-  "causality": "certain | probable | possible | unlikely | unassessable | undetermined",
-  "reasoning": "string",
-  "evidence_references": [
-    {
-      "chunk_id": "exact retrieved chunk ID",
-      "claim": "claim supported by this passage"
-    }
-  ]
-}
-
-If evidence is insufficient, explain the uncertainty in reasoning.
-Never fabricate a citation to make the assessment appear complete.
-"""
-
+# --------------------------------------------------
+# Gemini model
+# --------------------------------------------------
 
 def get_clinical_model():
     """Initialize Gemini with the available retrieval tools."""
@@ -84,6 +57,10 @@ def get_clinical_model():
 
     return model.bind_tools(AVAILABLE_TOOLS)
 
+
+# --------------------------------------------------
+# Response extraction
+# --------------------------------------------------
 
 def extract_response_text(content):
     """Normalize different LangChain response content formats."""
@@ -103,6 +80,10 @@ def extract_response_text(content):
     return ""
 
 
+# --------------------------------------------------
+# Clinical assessment parsing
+# --------------------------------------------------
+
 def parse_clinical_assessment(content):
     """
     Parse the model's final response as JSON.
@@ -113,21 +94,32 @@ def parse_clinical_assessment(content):
     text = extract_response_text(content)
 
     if not text:
-        raise ValueError("The clinical agent returned an empty response.")
+        raise ValueError(
+            "The clinical agent returned an empty response."
+        )
 
     # Remove optional Markdown JSON fences.
-    text = re.sub(r"^```(?:json)?\s*", "", text.strip(), flags=re.IGNORECASE)
+    text = re.sub(
+        r"^```(?:json)?\s*",
+        "",
+        text.strip(),
+        flags=re.IGNORECASE,
+    )
+
     text = re.sub(r"\s*```$", "", text.strip())
 
     try:
         assessment = json.loads(text)
+
     except json.JSONDecodeError as error:
         raise ValueError(
             f"Clinical assessment is not valid JSON: {error}"
         ) from error
 
     if not isinstance(assessment, dict):
-        raise ValueError("Clinical assessment must be a JSON object.")
+        raise ValueError(
+            "Clinical assessment must be a JSON object."
+        )
 
     required_fields = [
         "reaction_description",
@@ -139,7 +131,8 @@ def parse_clinical_assessment(content):
     ]
 
     missing = [
-        field for field in required_fields
+        field
+        for field in required_fields
         if field not in assessment
     ]
 
@@ -149,7 +142,9 @@ def parse_clinical_assessment(content):
         )
 
     if not isinstance(assessment["evidence_references"], list):
-        raise ValueError("evidence_references must be a list.")
+        raise ValueError(
+            "evidence_references must be a list."
+        )
 
     if assessment["seriousness"] not in [
         "serious",
@@ -168,11 +163,16 @@ def parse_clinical_assessment(content):
     return assessment
 
 
+# --------------------------------------------------
+# Evidence collection
+# --------------------------------------------------
+
 def collect_clinical_evidence(messages):
     """
     Extract retrieved passages from tool responses.
 
     The custom executor wraps successful results as:
+
     {
         "success": true,
         "result": [...]
@@ -228,6 +228,10 @@ def collect_clinical_evidence(messages):
     return evidence
 
 
+# --------------------------------------------------
+# Citation validation
+# --------------------------------------------------
+
 def validate_assessment_citations(assessment, evidence):
     """Ensure every cited chunk exists in the retrieved evidence."""
 
@@ -240,14 +244,18 @@ def validate_assessment_citations(assessment, evidence):
     citations = assessment.get("evidence_references", [])
 
     if not citations:
-        return False, ["The assessment contains no evidence references."]
+        return False, [
+            "The assessment contains no evidence references."
+        ]
 
     reasons = []
 
     for citation in citations:
 
         if not isinstance(citation, dict):
-            reasons.append("An evidence reference has an invalid format.")
+            reasons.append(
+                "An evidence reference has an invalid format."
+            )
             continue
 
         chunk_id = citation.get("chunk_id")
@@ -265,6 +273,38 @@ def validate_assessment_citations(assessment, evidence):
     return len(reasons) == 0, reasons
 
 
+# --------------------------------------------------
+# Deterministic missing-data guard
+# --------------------------------------------------
+
+def build_missing_data_escalation(
+    extracted_fields,
+    missing_fields,
+):
+    """
+    Escalate incomplete cases before invoking the LLM.
+
+    The model must not infer or fabricate missing case information.
+    """
+
+    return {
+        "extracted_fields": extracted_fields,
+        "missing_fields": missing_fields,
+        "clinical_evidence": [],
+        "escalation_required": True,
+        "escalation_reasons": [
+            f"Required case information is missing: {field}"
+            for field in missing_fields
+        ],
+        "reporting_route": "human_review",
+        "current_agent": "human_escalation",
+    }
+
+
+# --------------------------------------------------
+# Clinical Assessment Agent
+# --------------------------------------------------
+
 def clinical_agent_node(
     state: PharmacovigilanceState,
 ) -> dict:
@@ -273,7 +313,8 @@ def clinical_agent_node(
 
     First invocation:
     - Validates case fields.
-    - Initializes the conversation.
+    - Escalates incomplete cases before invoking Gemini.
+    - Initializes the conversation for complete cases.
 
     Subsequent invocations:
     - Continues the tool-calling conversation.
@@ -283,10 +324,15 @@ def clinical_agent_node(
     """
 
     messages = list(state.get("messages", []))
+
     is_first_call = not messages
 
     extracted_fields = state.get("extracted_fields", {})
     missing_fields = state.get("missing_fields", [])
+
+    # ----------------------------------------------
+    # First invocation: validate the submitted case
+    # ----------------------------------------------
 
     if is_first_call:
 
@@ -296,6 +342,16 @@ def clinical_agent_node(
 
         extracted_fields = case_result["case_fields"]
         missing_fields = case_result["missing_fields"]
+
+        # IMPORTANT:
+        # Do not invoke Gemini if required information
+        # is missing from the submitted case.
+
+        if missing_fields:
+            return build_missing_data_escalation(
+                extracted_fields,
+                missing_fields,
+            )
 
         messages = [
             SystemMessage(content=SYSTEM_PROMPT),
@@ -320,7 +376,10 @@ def clinical_agent_node(
             SystemMessage(content=SYSTEM_PROMPT),
         )
 
-    # Invoke Gemini.
+    # ----------------------------------------------
+    # Invoke Gemini
+    # ----------------------------------------------
+
     response = get_clinical_model().invoke(messages)
 
     # Preserve initial conversation history.
@@ -344,11 +403,17 @@ def clinical_agent_node(
         "current_agent": "clinical_assessment",
     }
 
-    # If Gemini requested tools, wait for their execution.
+    # ----------------------------------------------
+    # Handle tool calls
+    # ----------------------------------------------
+
     if getattr(response, "tool_calls", []):
         return result
 
-    # Otherwise, parse its final assessment.
+    # ----------------------------------------------
+    # Parse final clinical assessment
+    # ----------------------------------------------
+
     try:
 
         assessment = parse_clinical_assessment(
@@ -363,20 +428,29 @@ def clinical_agent_node(
         result["clinical_assessment"] = assessment
 
         if not passed:
+
             result["escalation_required"] = True
+
             result["escalation_reasons"] = citation_errors
+
             result["current_agent"] = "human_escalation"
 
     except ValueError as error:
 
         result["escalation_required"] = True
+
         result["escalation_reasons"] = [
             str(error)
         ]
+
         result["current_agent"] = "human_escalation"
 
     return result
 
+
+# --------------------------------------------------
+# Workflow routing
+# --------------------------------------------------
 
 def clinical_tool_router(
     state: PharmacovigilanceState,
@@ -403,3 +477,7 @@ def clinical_tool_router(
         return "tools"
 
     return "assessment_complete"
+
+
+# Backward compatibility for older tests and integrations.
+clinical_assessment_agent = clinical_agent_node
