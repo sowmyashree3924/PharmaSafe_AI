@@ -78,3 +78,9 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+def test_case_validation_suite(capsys):
+    main()
+    output = capsys.readouterr().out
+    assert "Failed:0" in "".join(output.split())

@@ -213,3 +213,9 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+def test_verification_scenario_suite(capsys):
+    main()
+    output = capsys.readouterr().out
+    assert "Failed:0" in "".join(output.split())
