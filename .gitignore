@@ -22,3 +22,17 @@ docs/planning/extracted_text/
 .env
 .env.*
 !.env.example
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Frontend dependencies
+node_modules/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

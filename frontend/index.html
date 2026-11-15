@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PharmaSafe AI | Adverse Event Intake</title>
+<style>
+:root{font-family:Inter,system-ui,Arial;color:#e8edf5;background:#0b1220}
+*{box-sizing:border-box}body{margin:0}.wrap{max-width:1100px;margin:auto;padding:32px 20px}
+header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:28px}
+h1{font-size:25px;margin:0}.muted{color:#9aa9bd;font-size:14px}
+.pill{border:1px solid #29445f;padding:7px 12px;border-radius:30px;color:#9fe3c0}
+.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
+.panel{background:#121d2e;border:1px solid #26364b;border-radius:14px;padding:22px}
+h2{font-size:17px;margin:0 0 18px}label{display:block;font-size:13px;color:#b8c5d6;margin:13px 0 6px}
+input,select,textarea{width:100%;background:#0c1626;border:1px solid #34465e;color:#f4f7fb;border-radius:8px;padding:11px;font:inherit}
+textarea{min-height:100px;resize:vertical}.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+button{background:#39b982;border:0;color:#062015;font-weight:700;padding:12px 17px;border-radius:8px;cursor:pointer;margin-top:17px}
+button:disabled{opacity:.5;cursor:wait}.status{padding:12px;background:#0c1626;border-radius:8px;white-space:pre-wrap;overflow-wrap:anywhere;min-height:80px}
+.notice{font-size:12px;color:#9aa9bd;line-height:1.5;margin-top:18px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}.two{grid-template-columns:1fr}}
+</style></head>
+<body><div class="wrap">
+<header><div><h1>PharmaSafe AI</h1><div class="muted">Adverse Event Intake & Triage</div></div><span class="pill">Decision support only</span></header>
+<div class="grid">
+<section class="panel"><h2>Submit synthetic adverse-event report</h2>
+<form id="caseForm">
+<label>Case ID</label><input name="case_id" required minlength="3" maxlength="50" value="DEMO-001">
+<label>Suspected drug</label><input name="drug_name" required value="DemoDrug">
+<label>Reaction description</label><textarea name="reaction_description" required>Patient reported a skin reaction after starting the medicine.</textarea>
+<div class="two"><div><label>Patient age</label><input name="patient_age" type="number" min="0" max="120" value="45" required></div>
+<div><label>Patient sex</label><select name="patient_sex"><option>female</option><option>male</option><option>other</option><option>unknown</option></select></div></div>
+<div class="two"><div><label>Drug start date</label><input name="drug_start_date" type="datetime-local" required value="2026-11-01T09:00"></div>
+<div><label>Reaction onset date</label><input name="onset_date" type="datetime-local" required value="2026-11-08T09:00"></div></div>
+<label>Outcome</label><select name="outcome"><option>hospitalisation</option><option>recovered</option><option>recovering</option><option>not_recovered</option><option>fatal</option><option>disability</option><option>congenital_anomaly</option><option>unknown</option></select>
+<label>Reporter type</label><select name="reporter_type"><option>doctor</option><option>pharmacist</option><option>patient</option><option>literature</option><option>other</option></select>
+<button id="submitBtn">Submit report</button>
+</form>
+<p class="notice">Use synthetic case data only. Do not enter real patient information. This system does not submit regulatory reports or replace qualified PV review.</p>
+</section>
+<section class="panel"><h2>Processing status & assessment</h2><div id="status" class="status">No report submitted yet.</div>
+<h2 style="margin-top:22px">Run details</h2><div id="details" class="status">The API returns a run ID immediately. This panel polls for completion.</div>
+</section></div></div>
+<script>
+const API = window.API_BASE || "http://localhost:8000";
+const form=document.getElementById("caseForm"), statusBox=document.getElementById("status"), details=document.getElementById("details"), btn=document.getElementById("submitBtn");
+const iso=(v)=>new Date(v).toISOString();
+form.addEventListener("submit",async(e)=>{
+ e.preventDefault();btn.disabled=true;statusBox.textContent="Submitting...";details.textContent="";
+ const f=new FormData(form), data=Object.fromEntries(f.entries());
+ data.patient_age=Number(data.patient_age);data.drug_start_date=iso(data.drug_start_date);data.onset_date=iso(data.onset_date);
+ try{
+  const res=await fetch(API+"/api/v1/cases",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});
+  const body=await res.json();if(!res.ok)throw new Error(JSON.stringify(body.detail||body));
+  details.textContent=JSON.stringify(body,null,2);statusBox.textContent="Queued. Waiting for worker...";
+  for(let i=0;i<90;i++){await new Promise(r=>setTimeout(r,1500));
+   const sr=await fetch(API+body.status_url);const state=await sr.json();statusBox.textContent=JSON.stringify(state,null,2);
+   if(["completed","failed"].includes(state.status))break;
+  }
+ }catch(err){statusBox.textContent="Error: "+err.message}
+ finally{btn.disabled=false}
+});
+</script></body></html>
