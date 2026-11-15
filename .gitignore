@@ -30,4 +30,4 @@ __pycache__/
 data/faiss_index/
 
 # Local debug files
-debug_messages.py
+debug_messages.pyevaluation/reports/
