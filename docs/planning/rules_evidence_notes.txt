@@ -1,0 +1,42 @@
+﻿PHARMASAFE AI - NEW DRUGS AND CLINICAL TRIALS RULES EVIDENCE NOTES
+
+Source:
+New Drugs and Clinical Trials Rules, 2019
+Publisher: Central Drugs Standard Control Organization (CDSCO)
+Government of India
+
+EVIDENCE 1: DEFINITION OF SERIOUS ADVERSE EVENT
+Section: 2(ff)
+PDF pages: 6-7
+Evidence:
+The Rules define a serious adverse event in the context of a clinical trial, including death, permanent disability, hospitalisation of an outdoor patient or healthy person, and prolongation of hospitalisation of an indoor patient.
+
+EVIDENCE 2: ETHICS COMMITTEE RESPONSIBILITY
+Relevant provision: Ethics Committee responsibilities
+PDF page: 13
+Evidence:
+The Ethics Committee must analyse relevant documents concerning a serious adverse event during a clinical trial or bioavailability/bioequivalence study and forward its report to the Central Licensing Authority.
+
+EVIDENCE 3: INVESTIGATOR REPORTING
+Rule: 42(1)
+PDF page: 39
+Evidence:
+The investigator shall report serious adverse events to the specified authorities and Ethics Committee within 24 hours of occurrence in the clinical-trial and related study context.
+
+EVIDENCE 4: DEATH-RELATED REPORTING AND REVIEW
+Rule: 42(2)
+PDF pages: 39-41
+Evidence:
+The Rules describe the reporting, review and compensation procedures for serious adverse events involving death, including responsibilities of the investigator, sponsor, Ethics Committee, expert committee and Central Licensing Authority.
+
+EVIDENCE 5: PERMANENT DISABILITY OR OTHER INJURY
+Rule: 42(3)
+PDF pages: 41-42
+Evidence:
+The Rules describe reporting, review and compensation procedures for serious adverse events involving permanent disability or other injury other than death.
+
+IMPORTANT SCOPE NOTE:
+These provisions concern clinical trials, bioavailability studies and bioequivalence studies. They must not be treated as general marketed-product post-marketing reporting timelines.
+
+IMPLEMENTATION NOTE:
+PharmaSafe AI is an academic decision-support prototype. It must retrieve applicable evidence, show source references and escalate uncertain cases for qualified human review. It must not submit regulatory reports or make final regulatory decisions.

@@ -1,0 +1,24 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/
+
+# Local verification copy
+ZIP_Verification/
+
+# Reference PDFs - keep local until redistribution permission is confirmed
+corpus/**/*.pdf
+
+# Extracted full-text copies
+docs/planning/extracted_text/
+
+# Local environments and secrets
+.venv/
+.env
+.env.*
+!.env.example

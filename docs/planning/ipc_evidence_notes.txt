@@ -1,0 +1,39 @@
+﻿PHARMASAFE AI - IPC EVIDENCE NOTES
+
+Source:
+Pharmacovigilance Guidance for Marketing Authorization Holders
+Publisher: Indian Pharmacopoeia Commission and CDSCO
+Version: 2.0 (2024)
+
+EVIDENCE 1: SERIOUSNESS CRITERIA
+Section: 2.5.3.6
+PDF page: 31
+Printed page: 20
+Evidence: Hospitalisation or prolongation of existing hospitalisation is included as a seriousness criterion.
+
+EVIDENCE 2: ADDITIONAL SERIOUSNESS CRITERIA
+Section: 2.5.3.6
+PDF page: 32
+Printed page: 21
+Evidence: Other criteria include disability, congenital anomaly and other medically important conditions.
+
+EVIDENCE 3: SERIOUS ADVERSE EVENT REPORTING
+Section: 2.7.1
+PDF page: 33
+Printed page: 22
+Evidence: The guidance states that MAHs must report serious adverse events within 15 calendar days of receiving information.
+
+EVIDENCE 4: NON-SERIOUS ADVERSE EVENT REPORTING
+Section: 2.7.2
+PDF page: 33
+Printed page: 22
+Evidence: The guidance states that MAHs must report non-serious adverse events within 90 calendar days of receiving information.
+
+EVIDENCE 5: CAUSALITY ASSESSMENT
+Section: 2.8
+PDF page: 33
+Printed page: 22
+Evidence: The guidance recommends the WHO-UMC causality assessment scale.
+
+IMPLEMENTATION NOTE:
+These provisions describe MAH reporting responsibilities. PharmaSafe AI is an academic decision-support prototype. It must provide evidence and escalate uncertain cases for qualified human review. It must not submit regulatory reports or make final regulatory decisions.
