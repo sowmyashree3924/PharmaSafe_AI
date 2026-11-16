@@ -29,11 +29,12 @@ log = logging.getLogger("pharmasafe-worker")
 async def process(redis: Redis, item: dict):
     case_id = item["case_id"]
     payload = item["payload"]
+    correlation_id = payload.get("_correlation_id", "")
 
     key = f"pharmasafe:case:{case_id}"
     start = time.perf_counter()
 
-    await redis.hset(key, mapping={"status": "processing"})
+    await redis.hset(key, mapping={"status": "processing", "correlation_id": correlation_id})
 
     try:
         result = await asyncio.wait_for(
@@ -56,6 +57,7 @@ async def process(redis: Redis, item: dict):
             json.dumps({
                 "event": "case_completed",
                 "case_id": case_id,
+                "correlation_id": correlation_id,
             })
         )
 
@@ -65,11 +67,12 @@ async def process(redis: Redis, item: dict):
             mapping={
                 "status": "failed",
                 "error": str(exc)[:500],
+                "correlation_id": correlation_id,
             },
         )
 
         RUNS_FAILED.inc()
-        log.exception("case_failed case_id=%s", case_id)
+        log.exception("case_failed case_id=%s correlation_id=%s", case_id, correlation_id)
 
     finally:
         RUN_LATENCY.observe(time.perf_counter() - start)

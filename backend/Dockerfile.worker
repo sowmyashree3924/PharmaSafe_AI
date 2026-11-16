@@ -9,10 +9,16 @@ ENV PYTHONPATH=/app
 COPY backend/requirements-worker.txt .
 RUN pip install --no-cache-dir -r requirements-worker.txt
 
+ARG INSTALL_AGENT_DEPS=false
+COPY backend/requirements-agent.txt ./requirements-agent.txt
+RUN if [ "$INSTALL_AGENT_DEPS" = "true" ]; then pip install --no-cache-dir -r requirements-agent.txt; fi
+
 COPY backend/app ./app
 COPY backend/agents ./backend/agents
 COPY backend/worker.py .
 COPY prompts ./prompts
+COPY docs/planning/ipc_evidence_notes.txt ./docs/planning/ipc_evidence_notes.txt
+COPY docs/planning/lamotrigine_label_excerpt.md ./docs/planning/lamotrigine_label_excerpt.md
 
 EXPOSE 8001
 

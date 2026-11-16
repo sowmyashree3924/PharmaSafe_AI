@@ -103,30 +103,30 @@ Categories:
 Scope:
 These categories support structured assessment. They do not prove that a drug caused an event.
 
-## 4\. Approved Marketed Drug Package Insert
+## 4\. Lamotrigine label reference (demonstration only)
 
-Status:
-Pending guide/team selection of the drug.
+Source:
+[DailyMed lamotrigine tablets label](https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=6139a858-700c-4eb9-9f84-99d280bde326)
 
-Expected location:
-corpus/package\_insert/
+Publisher:
+U.S. National Library of Medicine, DailyMed
 
-Expected extracted text location:
-docs/planning/extracted\_text/
+Label update shown by source:
+August 5, 2026
 
-Evidence required after selection:
+Local evidence excerpt:
+docs/planning/lamotrigine\_label\_excerpt.md
 
-* Approved product and manufacturer identification.
-* Listed adverse reactions.
-* Relevant warnings and precautions.
-* Source page references for expectedness checking.
+Relevant source sections:
+Boxed Warning — Serious Skin Rashes; Medication Guide — serious skin reactions and timing.
 
-Do not invent a drug, adverse reaction listing or package-insert evidence.
+Scope limitation:
+This public U.S. label is used to demonstrate the terminology match for “skin peeling.” It is not confirmed as the approved product insert for India. Local expectedness must remain unconfirmed until the team selects and verifies the applicable India-approved insert. The short excerpt does not diagnose Stevens-Johnson syndrome or establish causation.
 
 ## Implementation requirements
 
 * Every evidence-based output should include a source document and page or section reference.
-* Expectedness must be checked against the selected approved package insert.
+* Expectedness must be checked against the applicable approved package insert; the demonstration's U.S. label is not a substitute for local product information.
 * Seriousness and expectedness are separate assessments.
 * Missing or contradictory information must be flagged.
 * Uncertain cases must be escalated for qualified human review.

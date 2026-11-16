@@ -1,11 +1,16 @@
 
-from backend.agents.graph import pharmacovigilance_workflow
+import os
 
 
 async def run_agent(case_payload: dict) -> dict:
-    """
-    Adapt Member 3 API payload to Member 2's LangGraph workflow.
-    """
+    """Run the local, no-credential demo by default, or the optional LLM graph."""
+    if os.getenv("AGENT_MODE", "demo").lower() == "demo":
+        from backend.agents.demo_agent import run_demo_assessment
+
+        return await run_demo_assessment(case_payload)
+
+    from backend.agents.graph import pharmacovigilance_workflow
+
 
     # Convert API field names to the names expected by the AI agents.
     case_data = dict(case_payload)

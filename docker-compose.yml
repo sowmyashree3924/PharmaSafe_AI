@@ -16,6 +16,7 @@ services:
     environment:
       REDIS_URL: redis://redis:6379/0
       LOG_LEVEL: INFO
+      AGENT_MODE: ${AGENT_MODE:-demo}
     ports:
       - "8000:8000"
     depends_on:
@@ -35,17 +36,23 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile.worker
+      args:
+        INSTALL_AGENT_DEPS: ${INSTALL_AGENT_DEPS:-false}
     command: ["python", "worker.py"]
-    env_file:
-      - .env
     environment:
       REDIS_URL: redis://redis:6379/0
+      AGENT_MODE: ${AGENT_MODE:-demo}
       CASE_TIMEOUT_SECONDS: 90
       LOG_LEVEL: INFO
     depends_on:
       redis:
         condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/metrics')"]
+      interval: 15s
+      timeout: 4s
+      retries: 5
 
   frontend:
     build: ./frontend

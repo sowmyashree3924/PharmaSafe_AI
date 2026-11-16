@@ -51,8 +51,12 @@ SYSTEM_PROMPT = CLINICAL_ASSESSMENT_PROMPT
 def get_clinical_model():
     """Initialize Gemini with the available retrieval tools."""
 
+    model_name = os.getenv("GEMINI_MODEL")
+    if not model_name:
+        raise RuntimeError("Set GEMINI_MODEL when using the optional LangGraph mode.")
+
     model = ChatGoogleGenerativeAI(
-        model=os.getenv("GEMINI_MODEL", "gemini-3.8-flash"),
+        model=model_name,
     )
 
     return model.bind_tools(AVAILABLE_TOOLS)

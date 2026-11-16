@@ -9,6 +9,7 @@ async def enqueue_case(redis: Redis, case_id: str, payload: dict):
         "created_at": __import__("datetime").datetime.utcnow().isoformat(),
         "result": "",
         "error": "",
+        "correlation_id": payload.get("_correlation_id", ""),
     })
     await redis.lpush(QUEUE_NAME, json.dumps({"case_id": case_id, "payload": payload}))
 
