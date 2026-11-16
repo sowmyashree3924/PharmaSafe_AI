@@ -1,0 +1,12 @@
+
+redis==5.2.1
+prometheus-client==0.21.1
+python-dotenv
+langgraph
+langchain-core
+langchain-google-genai
+langchain-text-splitters
+langchain-community
+langchain-huggingface
+faiss-cpu
+sentence-transformers
