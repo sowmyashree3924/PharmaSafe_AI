@@ -17,17 +17,24 @@ corpus/**/*.pdf
 # Extracted full-text copies
 docs/planning/extracted_text/
 
-# Local environments and secrets
-.venv/
-.env
-.env.*
-!.env.example
-# Generated Python files
-__pycache__/
-*.py[cod]
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Frontend dependencies
+node_modules/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
 
 # Generated vector database
 data/faiss_index/
 
 # Local debug files
-debug_messages.pyevaluation/reports/
+debug_messages.py
+evaluation/reports/

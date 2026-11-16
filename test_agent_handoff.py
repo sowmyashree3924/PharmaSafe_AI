@@ -58,17 +58,15 @@ def test_failed_verification_escalates():
     print("PASS: Failed verification triggers escalation.")
 
 
-def test_successful_verification_finishes():
+def test_successful_verification_proceeds_to_regulatory_routing():
 
     state = {
         "escalation_required": False,
     }
 
-    from langgraph.graph import END
+    assert route_after_verification(state) == "regulatory_routing"
 
-    assert route_after_verification(state) == END
-
-    print("PASS: Successful verification completes workflow.")
+    print("PASS: Successful verification proceeds to regulatory routing.")
 
 
 if __name__ == "__main__":
